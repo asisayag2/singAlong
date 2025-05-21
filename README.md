@@ -23,8 +23,8 @@ A real-time lyrics display application with synchronized word highlighting. Buil
 
 1. Clone the repository:
 ```bash
-git clone <repository-url>
-cd sing-along
+git clone https://github.com/asisayag2/singAlong.git
+cd singAlong
 ```
 
 2. Install server dependencies:
@@ -76,4 +76,4 @@ note,velocity,word
 ## WebSocket Events
 
 - `wordChange` - Emitted when a word highlight is triggered
-  - Parameters: `{ songNumber, lineNumber, wordNumber }` 
+  - Parameters: `{ songNumber, lineNumber, wordNumber }`
