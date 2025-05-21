@@ -83,7 +83,7 @@ function App() {
             key={`${word.lineNumber}-${word.wordNumber}`}
             component="span"
             sx={{
-              mx: 1,
+              mx: 0.5,
               display: 'inline-block',
               fontSize: '2rem',
               backgroundColor:
@@ -113,11 +113,14 @@ function App() {
           Sing with us!!
         </Typography>
         {songMetadata && (
-          <Box sx={{ mb: 4, textAlign: 'center' }}>
-            <Typography variant="h3" color="primary" gutterBottom>
+          <Box sx={{ mb: 4, textAlign: 'center', display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Typography variant="h6" color="primary">
               {songMetadata.name}
             </Typography>
-            <Typography variant="h4" color="text.secondary">
+            <Typography variant="body1" color="text.secondary">
+              by
+            </Typography>
+            <Typography variant="h6" color="text.secondary">
               {songMetadata.artist}
             </Typography>
           </Box>
