@@ -76,34 +76,37 @@ function App() {
       return acc;
     }, {});
 
-    return Object.entries(lineGroups).map(([lineNumber, words]) => (
-      <Box key={lineNumber} sx={{ my: 2, textAlign: 'center' }}>
-        {words.map((word) => (
-          <Typography
-            key={`${word.lineNumber}-${word.wordNumber}`}
-            component="span"
-            sx={{
-              mx: 0.5,
-              display: 'inline-block',
-              fontSize: '2rem',
-              backgroundColor:
-                activeWord?.line === word.lineNumber && activeWord?.word === word.wordNumber
-                  ? 'primary.main'
-                  : 'transparent',
-              color:
-                activeWord?.line === word.lineNumber && activeWord?.word === word.wordNumber
-                  ? 'white'
-                  : 'inherit',
-              padding: '4px 8px',
-              borderRadius: 1,
-              transition: 'all 0.3s ease',
-            }}
-          >
-            {word.word}
-          </Typography>
-        ))}
-      </Box>
-    ));
+    // Sort lines numerically
+    return Object.entries(lineGroups)
+      .sort(([lineA], [lineB]) => parseInt(lineA) - parseInt(lineB))
+      .map(([lineNumber, words]) => (
+        <Box key={lineNumber} sx={{ my: 2, textAlign: 'center' }}>
+          {words.map((word) => (
+            <Typography
+              key={`${word.lineNumber}-${word.wordNumber}`}
+              component="span"
+              sx={{
+                mx: 0.5,
+                display: 'inline-block',
+                fontSize: '2rem',
+                backgroundColor:
+                  activeWord?.line === word.lineNumber && activeWord?.word === word.wordNumber
+                    ? 'primary.main'
+                    : 'transparent',
+                color:
+                  activeWord?.line === word.lineNumber && activeWord?.word === word.wordNumber
+                    ? 'white'
+                    : 'inherit',
+                padding: '4px 8px',
+                borderRadius: 1,
+                transition: 'all 0.3s ease',
+              }}
+            >
+              {word.word}
+            </Typography>
+          ))}
+        </Box>
+      ));
   };
 
   return (
