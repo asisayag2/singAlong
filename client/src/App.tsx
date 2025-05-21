@@ -15,7 +15,7 @@ interface LyricWord {
   word: string;
 }
 
-const SERVER_URL = 'http://localhost:3001';
+const SERVER_URL = 'http://54.218.89.203:3001';
 
 function App() {
   const [socket, setSocket] = useState<Socket | null>(null);
@@ -99,11 +99,10 @@ function App() {
     <Container maxWidth="md" sx={{ py: 4 }}>
       <Paper elevation={3} sx={{ p: 4, minHeight: '70vh' }}>
         <Typography variant="h3" align="center" gutterBottom>
-          Real-time Lyrics Display
+          Sing with us!!
         </Typography>
         {currentSong && (
           <Typography variant="h6" align="center" color="primary" gutterBottom>
-            Song #{currentSong}
           </Typography>
         )}
         <Box sx={{ mt: 4 }}>{renderLyrics()}</Box>

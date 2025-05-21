@@ -98,9 +98,9 @@ app.get('/song/:songNumber', (req, res) => {
 
   // Convert mapping to array of objects
   const response = Array.from(mapping.entries()).map(([key, word]) => ({
+    word, 
     lineNumber: key.substring(1, 3),
-    wordNumber: key.substring(4, 6),
-    word
+    wordNumber: key.substring(4, 6)
   }));
 
   res.json(response);
@@ -116,6 +116,6 @@ io.on('connection', (socket) => {
 });
 
 const PORT = process.env.PORT || 3001;
-server.listen(PORT, () => {
+server.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on port ${PORT}`);
 }); 
