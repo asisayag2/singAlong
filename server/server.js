@@ -27,6 +27,7 @@ const upload = multer({ storage: multer.memoryStorage() });
 // POST endpoint to receive song mapping
 app.post('/song', upload.single('file'), async (req, res) => {
   try {
+    console.log("Received song mapping request");
     const { songNumber } = req.body;
     if (!req.file || !songNumber) {
       return res.status(400).json({ error: 'Missing file or songNumber' });
@@ -37,6 +38,7 @@ app.post('/song', upload.single('file'), async (req, res) => {
 
     // Parse CSV file
     await new Promise((resolve, reject) => {
+      console.log("Parsing CSV file");
       parse(fileContent, {
         columns: true,
         skip_empty_lines: true
@@ -54,6 +56,7 @@ app.post('/song', upload.single('file'), async (req, res) => {
       const word = record.word;
       
       const key = `L${lineNumber.padStart(2, '0')}W${wordNumber.padStart(2, '0')}`;
+      console.log("Processing record:", { lineNumber, wordNumber, word, key });
       mapping.set(key, word);
     });
 
@@ -67,8 +70,10 @@ app.post('/song', upload.single('file'), async (req, res) => {
 
 // POST endpoint to trigger word change
 app.post('/trigger', (req, res) => {
+  console.log("Received word change request");
   const { wordId } = req.body;
   if (!wordId || !/^S\d{2}L\d{2}W\d{2}$/.test(wordId)) {
+    console.log("Invalid word ID format");
     return res.status(400).json({ error: 'Invalid word ID format' });
   }
 
@@ -91,7 +96,7 @@ app.post('/trigger', (req, res) => {
 app.get('/song/:songNumber', (req, res) => {
   const { songNumber } = req.params;
   const mapping = songMappings.get(songNumber);
-
+  console.log("Retrieving song mapping for:", songNumber);
   if (!mapping) {
     return res.status(404).json({ error: 'Song not found' });
   }
@@ -115,7 +120,3 @@ io.on('connection', (socket) => {
   });
 });
 
-const PORT = process.env.PORT || 3001;
-server.listen(PORT, '0.0.0.0', () => {
-  console.log(`Server running on port ${PORT}`);
-}); 

@@ -26,8 +26,10 @@ function App() {
   useEffect(() => {
     const newSocket = io(SERVER_URL);
     setSocket(newSocket);
+    console.log("Socket connected");
 
     newSocket.on('wordChange', async (data: WordChange) => {
+      console.log("Word change event received:", data);
       if (currentSong !== data.songNumber) {
         // Fetch new song lyrics
         try {
@@ -39,8 +41,10 @@ function App() {
           console.error('Error fetching song:', error);
         }
       }
-      
+      console.log("Setting active word:", { line: data.lineNumber, word: data.wordNumber });
       setActiveWord({ line: data.lineNumber, word: data.wordNumber });
+      console.log("Active word set to:", activeWord);
+
     });
 
     return () => {
@@ -49,6 +53,7 @@ function App() {
   }, [currentSong]);
 
   const renderLyrics = () => {
+    console.log("Rendering lyrics:", lyrics);
     if (!lyrics.length) {
       return (
         <Typography variant="h5" align="center" color="textSecondary">
