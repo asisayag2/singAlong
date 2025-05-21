@@ -4,7 +4,8 @@ const socketIo = require('socket.io');
 const multer = require('multer');
 const { parse } = require('csv-parse');
 const cors = require('cors');
-const fs = require('fs');
+const fs = require('fs').promises;
+const path = require('path');
 
 const app = express();
 const server = http.createServer(app);
@@ -18,17 +19,52 @@ const io = socketIo(server, {
 app.use(cors());
 app.use(express.json());
 
-// In-memory storage for song mappings
-const songMappings = new Map();
+// Create songs directory if it doesn't exist
+const SONGS_DIR = path.join(__dirname, 'songs');
+fs.mkdir(SONGS_DIR, { recursive: true }).catch(console.error);
 
 // Configure multer for CSV file upload
 const upload = multer({ storage: multer.memoryStorage() });
+
+// Helper function to save song data
+async function saveSong(songNumber, mapping, songName = '', artist = '') {
+  const songData = {
+    songNumber,
+    songName,
+    artist,
+    words: Array.from(mapping.entries()).map(([key, word]) => ({
+      key,
+      word,
+      lineNumber: key.substring(1, 3),
+      wordNumber: key.substring(4, 6)
+    }))
+  };
+
+  const filePath = path.join(SONGS_DIR, `song_${songNumber}.json`);
+  await fs.writeFile(filePath, JSON.stringify(songData, null, 2));
+  return songData;
+}
+
+// Helper function to load song data
+async function loadSong(songNumber) {
+  try {
+    const filePath = path.join(SONGS_DIR, `song_${songNumber}.json`);
+    const data = await fs.readFile(filePath, 'utf8');
+    const songData = JSON.parse(data);
+    return songData;
+  } catch (error) {
+    if (error.code === 'ENOENT') {
+      return null;
+    }
+    throw error;
+  }
+}
 
 // POST endpoint to receive song mapping
 app.post('/song', upload.single('file'), async (req, res) => {
   try {
     console.log("Received song mapping request");
-    const { songNumber } = req.body;
+    const { songNumber, songName, artist } = req.body;
     if (!req.file || !songNumber) {
       return res.status(400).json({ error: 'Missing file or songNumber' });
     }
@@ -60,11 +96,32 @@ app.post('/song', upload.single('file'), async (req, res) => {
       mapping.set(key, word);
     });
 
-    songMappings.set(songNumber, mapping);
-    res.json({ message: 'Song mapping stored successfully' });
+    // Save to file
+    const songData = await saveSong(songNumber, mapping, songName, artist);
+    res.json({ 
+      message: 'Song mapping stored successfully',
+      songData
+    });
   } catch (error) {
     console.error('Error processing song:', error);
     res.status(500).json({ error: 'Failed to process song' });
+  }
+});
+
+// GET endpoint to retrieve song mapping
+app.get('/song/:songNumber', async (req, res) => {
+  const { songNumber } = req.params;
+  console.log("Retrieving song mapping for:", songNumber);
+  
+  try {
+    const songData = await loadSong(songNumber);
+    if (!songData) {
+      return res.status(404).json({ error: 'Song not found' });
+    }
+    res.json(songData);
+  } catch (error) {
+    console.error('Error loading song:', error);
+    res.status(500).json({ error: 'Failed to load song' });
   }
 });
 
@@ -90,25 +147,6 @@ app.post('/trigger', (req, res) => {
   });
 
   res.json({ message: 'Word change triggered successfully' });
-});
-
-// GET endpoint to retrieve song mapping
-app.get('/song/:songNumber', (req, res) => {
-  const { songNumber } = req.params;
-  const mapping = songMappings.get(songNumber);
-  console.log("Retrieving song mapping for:", songNumber);
-  if (!mapping) {
-    return res.status(404).json({ error: 'Song not found' });
-  }
-
-  // Convert mapping to array of objects
-  const response = Array.from(mapping.entries()).map(([key, word]) => ({
-    word, 
-    lineNumber: key.substring(1, 3),
-    wordNumber: key.substring(4, 6)
-  }));
-
-  res.json(response);
 });
 
 // Socket.IO connection handling
