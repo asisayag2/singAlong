@@ -15,12 +15,20 @@ interface LyricWord {
   word: string;
 }
 
+interface SongData {
+  songNumber: string;
+  songName: string;
+  artist: string;
+  words: LyricWord[];
+}
+
 const SERVER_URL = 'http://54.218.89.203:3001';
 
 function App() {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [currentSong, setCurrentSong] = useState<string | null>(null);
   const [lyrics, setLyrics] = useState<LyricWord[]>([]);
+  const [songMetadata, setSongMetadata] = useState<{ name: string; artist: string } | null>(null);
   const [activeWord, setActiveWord] = useState<{ line: string; word: string } | null>(null);
 
   useEffect(() => {
@@ -34,17 +42,15 @@ function App() {
         // Fetch new song lyrics
         try {
           const response = await fetch(`${SERVER_URL}/song/${data.songNumber}`);
-          const songData = await response.json();
-          setLyrics(songData);
+          const songData: SongData = await response.json();
+          setLyrics(songData.words);
+          setSongMetadata({ name: songData.songName, artist: songData.artist });
           setCurrentSong(data.songNumber);
         } catch (error) {
           console.error('Error fetching song:', error);
         }
       }
-      console.log("Setting active word:", { line: data.lineNumber, word: data.wordNumber });
       setActiveWord({ line: data.lineNumber, word: data.wordNumber });
-      console.log("Active word set to:", activeWord);
-
     });
 
     return () => {
@@ -53,7 +59,6 @@ function App() {
   }, [currentSong]);
 
   const renderLyrics = () => {
-    console.log("Rendering lyrics:", lyrics);
     if (!lyrics.length) {
       return (
         <Typography variant="h5" align="center" color="textSecondary">
@@ -72,14 +77,15 @@ function App() {
     }, {});
 
     return Object.entries(lineGroups).map(([lineNumber, words]) => (
-      <Box key={lineNumber} sx={{ my: 1 }}>
+      <Box key={lineNumber} sx={{ my: 2, textAlign: 'center' }}>
         {words.map((word) => (
           <Typography
             key={`${word.lineNumber}-${word.wordNumber}`}
             component="span"
             sx={{
-              mx: 0.5,
+              mx: 1,
               display: 'inline-block',
+              fontSize: '2rem',
               backgroundColor:
                 activeWord?.line === word.lineNumber && activeWord?.word === word.wordNumber
                   ? 'primary.main'
@@ -88,7 +94,7 @@ function App() {
                 activeWord?.line === word.lineNumber && activeWord?.word === word.wordNumber
                   ? 'white'
                   : 'inherit',
-              padding: '2px 4px',
+              padding: '4px 8px',
               borderRadius: 1,
               transition: 'all 0.3s ease',
             }}
@@ -102,15 +108,21 @@ function App() {
 
   return (
     <Container maxWidth="md" sx={{ py: 4 }}>
-      <Paper elevation={3} sx={{ p: 4, minHeight: '70vh' }}>
-        <Typography variant="h3" align="center" gutterBottom>
+      <Paper elevation={3} sx={{ p: 4, minHeight: '70vh', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        <Typography variant="h2" align="center" gutterBottom sx={{ mb: 4 }}>
           Sing with us!!
         </Typography>
-        {currentSong && (
-          <Typography variant="h6" align="center" color="primary" gutterBottom>
-          </Typography>
+        {songMetadata && (
+          <Box sx={{ mb: 4, textAlign: 'center' }}>
+            <Typography variant="h3" color="primary" gutterBottom>
+              {songMetadata.name}
+            </Typography>
+            <Typography variant="h4" color="text.secondary">
+              {songMetadata.artist}
+            </Typography>
+          </Box>
         )}
-        <Box sx={{ mt: 4 }}>{renderLyrics()}</Box>
+        <Box sx={{ mt: 4, width: '100%' }}>{renderLyrics()}</Box>
       </Paper>
     </Container>
   );
